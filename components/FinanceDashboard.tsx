@@ -8,7 +8,8 @@ import { addMonths, endOfMonth, format, isWithinInterval, startOfMonth, subMonth
 import { Budget, Category, Transaction } from '@/lib/types';
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 import TransactionForm from './TransactionForm';
-import { getBudgets, getTransactions, saveTransactions } from '@/lib/storage';
+import { getBudgets, getTransactions, saveBudgets, saveTransactions } from '@/lib/storage';
+import BudgetProgress from './BudgetProgress';
 
 const COLORS = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6"];
 const INCOME_CATS: Category[] = ["Salary", "Freelance", "Gift", "Other"];
@@ -36,7 +37,15 @@ export default function FinanceDashboard() {
         toast.success("Added!", {
             description: `${tx.amount > 0 ? "+" : "-"}₦${Math.abs(tx.amount).toLocaleString()} • ${tx.category}`,
         });
-  };
+    };
+    
+    const updateBudget = (category: Category, limit: number) => {
+        const updated = budgets.map(b =>
+          b.category === category ? { ...b, limit: Math.max(0, limit) } : b
+        );
+        setBudgets(updated);
+        saveBudgets(updated);
+      };
     
 
     const monthStart = startOfMonth(month);
@@ -146,6 +155,13 @@ export default function FinanceDashboard() {
             <TransactionForm onAdd={addTransaction} />
           </div>
         </div>
+
+        {/* Budgets */}
+        <BudgetProgress
+            budgets={budgets.filter(b => EXPENSE_CATS.includes(b.category))}
+            transactions={monthTx}
+            onUpdate={updateBudget}
+        />
 
 
       </div>
