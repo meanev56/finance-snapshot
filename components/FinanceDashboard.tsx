@@ -10,6 +10,7 @@ import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recha
 import TransactionForm from './TransactionForm';
 import { getBudgets, getTransactions, saveBudgets, saveTransactions } from '@/lib/storage';
 import BudgetProgress from './BudgetProgress';
+import TransactionList from './TransactionList';
 
 const COLORS = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6"];
 const INCOME_CATS: Category[] = ["Salary", "Freelance", "Gift", "Other"];
@@ -162,6 +163,9 @@ export default function FinanceDashboard() {
             transactions={monthTx}
             onUpdate={updateBudget}
         />
+
+        {/* Transactions */}
+        <TransactionList transactions={monthTx} />
 
 
       </div>
