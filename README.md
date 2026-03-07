@@ -58,6 +58,7 @@ High-priority polish / next features (in rough order):
 - Balancing simplicity vs polish (wanted to avoid component libraries like shadcn/ui to keep bundle small)
 - localStorage quirks on SSR → all data loading moved to client-side `useEffect`
 - Deciding how opinionated to make budgets (only expenses have limits vs also tracking income goals)
+- hydration error
 
 ## Time Spent (approximate)
 
