@@ -1,15 +1,43 @@
 "use client"
 
-import { Toaster } from 'sonner'
+import { toast, Toaster } from 'sonner'
 import { motion } from "framer-motion"
 import { AlertCircle, ChevronLeft, ChevronRight, DollarSign, TrendingUp } from 'lucide-react'
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { addMonths, endOfMonth, format, isWithinInterval, startOfMonth, subMonths } from 'date-fns';
-import { Transaction } from '@/lib/types';
+import { Budget, Category, Transaction } from '@/lib/types';
+import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
+import TransactionForm from './TransactionForm';
+import { getBudgets, getTransactions, saveTransactions } from '@/lib/storage';
+
+const COLORS = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6"];
+const INCOME_CATS: Category[] = ["Salary", "Freelance", "Gift", "Other"];
+const EXPENSE_CATS: Category[] = ["Food", "Transport", "Utilities", "Entertainment", "Shopping"];
 
 export default function FinanceDashboard() {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [month, setMonth] = useState(new Date());
+    const [budgets, setBudgets] = useState<Budget[]>([]);
+
+    useEffect(() => {
+        setTransactions(getTransactions());
+        const savedBudgets = getBudgets();
+        setBudgets(savedBudgets.length ? savedBudgets : defaultBudgets());
+      }, []);
+
+    const defaultBudgets = (): Budget[] =>
+          EXPENSE_CATS.map(cat => ({ category: cat, limit: 50000 }))
+
+    const addTransaction = (tx: Omit<Transaction, "id">) => {
+        const newTx = { ...tx, id: crypto.randomUUID() };
+        const updated = [newTx, ...transactions];
+        setTransactions(updated);
+        saveTransactions(updated);
+        toast.success("Added!", {
+            description: `${tx.amount > 0 ? "+" : "-"}₦${Math.abs(tx.amount).toLocaleString()} • ${tx.category}`,
+        });
+  };
+    
 
     const monthStart = startOfMonth(month);
     const monthEnd = endOfMonth(month);
@@ -22,6 +50,14 @@ export default function FinanceDashboard() {
     const income = monthTx.filter(t => t.amount > 0).reduce((s, t) => s + t.amount, 0);
     const expenses = Math.abs(monthTx.filter(t => t.amount < 0).reduce((s, t) => s + t.amount, 0));
     const balance = income - expenses;
+
+
+    const pieData = EXPENSE_CATS.map(cat => {
+        const spent = Math.abs(
+            monthTx.filter(t => t.category === cat && t.amount < 0).reduce((s, t) => s + t.amount, 0)
+        );
+        return { name: cat, value: spent };
+        }).filter(d => d.value > 0);
 
     
   return (
@@ -67,6 +103,48 @@ export default function FinanceDashboard() {
                 value={balance}
                 color={balance >= 0 ? "text-emerald-700" : "text-rose-700"}
             />
+        </div>
+
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Pie Chart */}
+          <div className="lg:col-span-2 bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+            <h2 className="text-xl font-semibold mb-5 text-gray-800">Expense Breakdown</h2>
+            <div className="h-80 sm:h-96">
+              {pieData.length > 0 ? (
+                <ResponsiveContainer>
+                  <PieChart>
+                    <Pie
+                      data={pieData}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={70}
+                      outerRadius={130}
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      labelLine={false}
+                    >
+                      {pieData.map((_, i) => (
+                        <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(val: number) => `₦${val.toLocaleString()}`} />
+                    <Legend verticalAlign="bottom" height={40} />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex items-center justify-center text-gray-500">
+                  No expenses this month
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Add Form */}
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 h-fit">
+            <h2 className="text-xl font-semibold mb-5 text-gray-800">New Transaction</h2>
+            <TransactionForm onAdd={addTransaction} />
+          </div>
         </div>
 
 
