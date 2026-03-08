@@ -237,14 +237,16 @@ export default function FinanceDashboard() {
                       cy="50%"
                       innerRadius={70}
                       outerRadius={130}
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      label={({ name, percent }) => 
+                      `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
+                      }
                       labelLine={false}
                     >
-                      {pieData.map((_, i) => (
-                        <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(val: number) => `₦${val.toLocaleString()}`} />
+                      {pieData.map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                    <Tooltip formatter={(val) => `₦${(val ?? 0).toLocaleString()}`} />
                     <Legend verticalAlign="bottom" height={40} />
                   </PieChart>
                 </ResponsiveContainer>
