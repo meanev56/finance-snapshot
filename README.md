@@ -2,6 +2,9 @@
 
 A clean, modern, client-side personal finance dashboard built with **Next.js 15+ (App Router)**, **TypeScript**, **Tailwind CSS v4**, and **localStorage** persistence.
 
+Live demo: (deploy it yourself on Vercel/Netlify – no backend required)
+https://finance-snapshot-umber.vercel.app/
+
 
 ## What I Built
 
